@@ -6,7 +6,7 @@
 
 #This is the constructor, which means it is where initial
 #declarations and operations are made.
-if(first()){
+if(first()|duped()){
     runOnChat(1)
     #Allow the members to your list make it as long as you want:
     Allow[1,string] = "STEAM_0:0:0"
