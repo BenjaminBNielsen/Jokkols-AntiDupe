@@ -1,0 +1,134 @@
+@name Jokkols_AntiDupe
+@persist Allow:array OriginalOwner PermissionGranted
+#Remember to make the chip invisible, so people can't figure out
+#how it works (they will be able to remove it if they by it,
+#and then pretend it's theirs) which is why it is essential.
+
+#This is the constructor, which means it is where initial
+#declarations and operations are made.
+if(first()){
+    runOnChat(1)
+    #Allow the members to your list make it as long as you want:
+    Allow[1,string] = "STEAM_0:0:0"
+    #add one to the index ([1,string] will become [2,string]):
+    #Allow[MemberNumber,string] = "Buyer 1 STEAMID"
+    #Allow[MemberNumber,string] = "Buyer 2 STEAMID"
+    
+    setName("your name's AntiDupe")
+    
+    if(owner():steamID() == Allow[1,string]){
+        Str = "AntiDupe: Thank you for using Jokkol2's AntiDupe!\n"
+        Str += "Type '-adhelp' for available commands."
+        printColor(vec(0,255,0),Str)
+    }
+}
+
+#I'm making this a function because I need to use it in 2 places, so this way I avoid
+#some redundancy.
+function void checkPermission(){
+    #This is a for loop that goes through the array of allowed members.
+    
+    #This resets the permission, if it was previously 1.
+    if(PermissionGranted == 1){
+        PermissionGranted = 0  
+         
+    }
+    
+    #Check for permission for every member of Allow.
+    for(I=1,Allow:count()){
+        #This controls whether the owner of this particular E2
+        #is one of the allowed members.
+        if(owner():steamID() == Allow[I,string]){
+            #The contraption will not be deleted.
+            PermissionGranted = 1
+            
+            if(!chatClk()){
+                hint("Duplication complete.",7)
+            }
+        }
+    }
+    #check if the permission was granted, right after the for loop.
+    if(PermissionGranted != 1){
+        Str = "This dupe is not made by the person who sold it to you"
+        Str += " contact 'your ingame name' for the original dupe"
+        hint(Str,7)
+    
+        #Removes everything that is constrained to the E2 (the dupe).
+        selfDestructAll()
+    }
+        
+}
+
+checkPermission()
+
+#I would normally have a chip for handling a seperate responsibility
+#but since this will just be copy/pasted I want to make it easy
+#to do so. Chat commands:
+StringArray = owner():lastSaid():explode(" ")
+
+#Add command:
+if(owner():steamID() == Allow[1,string] && StringArray[1,string] == "-adadd" && chatClk(owner())){
+    hideChat(1)
+    #Next we check for a player name input after the -adadd command.
+    Player = findPlayerByName(StringArray[2,string])
+    if(Player:isPlayer()){
+        for(I=1,Allow:count()){
+            if(Allow[I,string] == Player:steamID()){
+                Already = 1
+                Str = "AntiDupe: The person you tried to add, "
+                Str += "allready has permission"
+                printColor(vec(0,255,0),Str)
+            }
+        }
+        if(Already != 1){
+            Allow:pushString(Player:steamID())
+            Str = "AntiDupe: " + Player:name() + " with SteamID: "
+            Str += Player:steamID() + " has been granted permission."
+            printColor(vec(0,255,0),Str)
+        }
+        }else{
+        hint("No such player exists, please try again",3)
+    }
+}
+
+#Remove command:
+if(owner():steamID() == Allow[1,string] && StringArray[1,string] == "-adremove" && chatClk(owner())){
+    hideChat(1)
+    Player = findPlayerByName(StringArray[2,string])
+    if(Player:isPlayer()){
+        for(I=1,Allow:count()){
+            if(Allow[I,string] == Player:steamID()){
+                Str = "AntiDupe: " + Player:name() + " with SteamID: "
+                Str += Player:steamID() + " has been removed"
+                printColor(vec(0,255,0),Str)
+                Allow:removeString(I)
+                
+                #Checks the list of permissions again.
+                checkPermission()
+            }
+        }
+    }else{
+        hint("No such player exists, please try again",3)
+    }
+}
+
+#List command:
+if(owner():steamID() == Allow[1,string] && StringArray[1,string] == "-adlist" && chatClk(owner())){
+    hideChat(1)
+    Str = "This is the list of permitted SteamID's:\n"
+    for(I=1,Allow:count()){
+        Str += I + ": " + Allow[I,string] + "\n"
+    }
+    printColor(vec(0,255,0),Str)
+}
+
+#Help command:
+if(owner():steamID() == Allow[1,string] && StringArray[1,string] == "-adhelp" && chatClk(owner())){
+    hideChat(1)
+    Str = "AntiDupe This is a list of available commands:\n"
+    Str += "'-adadd player' -Grants permission to a player.\n"
+    Str += "'-adremove player' -Removes permission from a player.\n"
+    Str += "'-adlist' -Shows a list of permitted players.\n"
+    Str += "'-adhelp' -Shows this list."
+    printColor(vec(0,255,0),Str)
+}
